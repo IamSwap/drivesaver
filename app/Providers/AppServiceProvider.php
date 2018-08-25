@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Laravel\Horizon\Horizon;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +14,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Horizon::auth(function ($request) {
+            if ($request->user() && $request->user()->email == config('services.admin_email')) {
+                return true;
+            }
+            return false;
+        });
     }
 
     /**

@@ -14,7 +14,7 @@
                         </div>
                     @endif
 
-                    You are logged in!
+                    <downloader :user="{{ auth()->user() }}"></downloader>
                 </div>
             </div>
         </div>
