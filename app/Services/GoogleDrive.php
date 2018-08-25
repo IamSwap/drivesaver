@@ -59,6 +59,36 @@ class GoogleDrive
     protected $uploadProgress = 0;
 
     /**
+     * Download rate
+     *
+     * @var int
+     */
+    protected $downloadRate = 0;
+
+    /**
+     * Download rate
+     *
+     * @var int
+     */
+    protected $uploadRate = 0;
+
+    /**
+     * Downloaded bytes
+     *
+     * @var int
+     */
+    protected $downloadedBytes = 0;
+
+    /**
+     * Uploaded bytes
+     *
+     * @var int
+     */
+    protected $uploadedBytes = 0;
+
+    protected $startTime;
+
+    /**
      * Prepare google client
      */
     public function __construct()
@@ -73,23 +103,36 @@ class GoogleDrive
 
         $this->client->setDefer(true);
 
-        $this->client->setAccessToken(auth()->user()->token);
+        $this->client->setAccessToken([
+            'access_token' => auth()->user()->token,
+            'expires_in' => auth()->user()->token_expires_in,
+            'created' => auth()->user()->token_created,
+            'refresh_token' => auth()->user()->refresh_token,
+        ]);
 
-        if ($client->isAccessTokenExpired()) {
+        if ($this->client->isAccessTokenExpired()) {
             $r = $this->client->refreshToken(auth()->user()->refresh_token);
 
             auth()->user()->update([
                 'token' => $r['access_token'],
                 'refresh_token' => $r['refresh_token'],
+                'token_expires_in' => $r['expires_in'],
+                'token_created' => $r['created'],
             ]);
 
-            $this->client->setAccessToken(auth()->user()->token);
+            $this->client->setAccessToken([
+                'access_token' => auth()->user()->token,
+                'expires_in' => auth()->user()->token_expires_in,
+                'created' => auth()->user()->token_created,
+                'refresh_token' => auth()->user()->refresh_token,
+            ]);
         }
 
         $this->drive = new \Google_Service_Drive($this->client);
         $this->driveFile = new \Google_Service_Drive_DriveFile();
 
         $this->httpClient = new Client();
+        $this->startTime = microtime(true);
     }
 
     /**
@@ -109,6 +152,8 @@ class GoogleDrive
 
                 if ($downloadTotal) {
                     $progress = round($downloadedBytes * 100 / $downloadTotal);
+                    $downloadRate = $downloadedBytes / (microtime(true) - $this->startTime);
+                    $this->downloadedBytes = $downloadedBytes;
                 }
 
                 if ($downloadedBytes <= $downloadTotal) {
@@ -120,8 +165,10 @@ class GoogleDrive
                             'file_size' => $downloadTotal,
                             'downloaded' => $downloadedBytes,
                             'download_progress' => $progress,
+                            'download_rate' => $downloadRate,
                             'uploaded' => 0,
                             'upload_progress' => 0,
+                            'upload_rate' => $this->uploadRate,
                             'user_id' => auth()->user()->id
                         ];
 
@@ -156,11 +203,15 @@ class GoogleDrive
             $status = false;
             $handle = fopen($file, "rb");
 
+            $startTime = microtime(true);
+
             while (!$status && !feof($handle)) {
                 $progress = round($this->media->getProgress() * 100 / $fileSize);
 
-                $chunk = fread($handle, $chunkSizeBytes);
+                $this->uploadRate = $this->media->getProgress() / (microtime(true) - $startTime);
+                $this->uploadedBytes = $this->media->getProgress();
 
+                $chunk = fread($handle, $chunkSizeBytes);
                 $status = $this->media->nextChunk($chunk);
 
                 if ($this->uploadProgress != $progress) {
@@ -171,8 +222,10 @@ class GoogleDrive
                         'file_size' => $fileSize,
                         'downloaded' => $fileSize,
                         'download_progress' => 100,
+                        'download_rate' => $this->downloadRate,
                         'uploaded' => $this->media->getProgress(),
                         'upload_progress' => $progress,
+                        'upload_rate' => $this->uploadRate,
                         'user_id' => auth()->user()->id
                     ]));
 
@@ -182,6 +235,8 @@ class GoogleDrive
                 if ($status) {
                     $progress = 100;
 
+                    sleep(5);
+
                     broadcast(new Progress([
                         'file_name' => $name,
                         'file_url' => $url,
@@ -189,8 +244,10 @@ class GoogleDrive
                         'file_size' => $fileSize,
                         'downloaded' => $fileSize,
                         'download_progress' => 100,
+                        'download_rate' => $this->downloadRate,
                         'uploaded' => $fileSize,
                         'upload_progress' => 100,
+                        'upload_rate' => 0,
                         'user_id' => auth()->user()->id
                     ]));
 

@@ -4,6 +4,11 @@
         <p v-if="downloadProgress.downloaded">Downloaded: {{ format(downloadProgress.downloaded) }}</p>
         <p v-if="uploadProgress.total">Total Upload: {{ format(uploadProgress.total) }}</p>
         <p v-if="uploadProgress.uploaded">Uploaded: {{ format(uploadProgress.uploaded) }}</p> -->
+        <p>Download Progress: {{ progress.download_progress }}%</p>
+        <p>Download Rate: {{ format(progress.download_rate) }}</p>
+
+        <p>Upload Progress: {{ progress.upload_progress }}%</p>
+        <p>Upload Rate: {{ format(progress.upload_rate) }}</p>
     </div>
 </template>
 
@@ -18,8 +23,7 @@ export default {
     mounted() {
         Echo.private(`progress.${this.user.id}`)
             .listen('Progress', (e) => {
-                //this.progress = e.data;
-                console.log(e.data);
+                this.progress = e.data;
             });
     },
     methods: {

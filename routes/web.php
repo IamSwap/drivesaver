@@ -26,8 +26,8 @@ Route::get('/callback', 'GoogleController@handleProviderCallback');
 
 
 Route::get('/dev', function () {
-    Facades\App\Services\GoogleDrive::upload(
-        '01 - Chogada (320 Kbps) - DownloadMing.SE.mp3',
-        'http://2017.downloadming2018.com/temp/Loveratri%20(2018)/01%20-%20Chogada%20(320%20Kbps)%20-%20DownloadMing.SE.mp3'
-    );
+    // Facades\App\Services\GoogleDrive::upload(
+    //     '01 - Chogada (320 Kbps) - DownloadMing.SE.mp3',
+    //     'http://2017.downloadming2018.com/temp/Loveratri%20(2018)/01%20-%20Chogada%20(320%20Kbps)%20-%20DownloadMing.SE.mp3'
+    // );
 });

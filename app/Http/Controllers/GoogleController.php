@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -66,6 +67,8 @@ class GoogleController extends Controller
             $dbUser->update([
                 'token' => $user->token,
                 'refresh_token' => $user->refreshToken,
+                'token_expires_in' => $user->expiresIn,
+                'token_created' => time(),
             ]);
 
             return $dbUser;
@@ -76,6 +79,8 @@ class GoogleController extends Controller
             'email' => $user->getEmail(),
             'token' => $user->token,
             'refresh_token' => $user->refreshToken,
+            'token_expires_in' => $user->expiresIn,
+            'token_created' => time(),
             'avatar' => $user->getAvatar(),
         ]);
     }
