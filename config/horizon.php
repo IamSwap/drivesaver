@@ -77,7 +77,7 @@ return [
                 'queue' => ['file', 'default'],
                 'balance' => 'simple',
                 'processes' => 10,
-                'tries' => 3,
+                'tries' => 0,
             ],
         ],
 
@@ -87,7 +87,7 @@ return [
                 'queue' => ['file', 'default'],
                 'balance' => 'simple',
                 'processes' => 3,
-                'tries' => 3,
+                'tries' => 0,
             ],
         ],
     ],
