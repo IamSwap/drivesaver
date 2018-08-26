@@ -246,6 +246,7 @@ export default {
                             if (f.status === 'downloading' || f.status === 'uploading') {
                                 f.progress = e.progress;
                                 f.status = e.progress.status;
+                                console.log(e.progress);
                             }
                         }
                         return f;
