@@ -143,7 +143,6 @@ export default {
                 .then(response => {
                     this.files = response.data;
                     this.loading = false;
-                    Echo.disconnect();
                     this.files.map((file) => {
                         if (file.status === 'downloading' || file.status === 'uploading') {
                             this.listenProgress(file);
@@ -244,8 +243,10 @@ export default {
                 .listen('Progress', (e) => {
                     this.files = this.files.map(f => {
                         if (f.id === file.id) {
-                            f.progress = e.progress;
-                            f.status = e.progress.status;
+                            if (f.status === 'downloading' || f.status === 'uploading') {
+                                f.progress = e.progress;
+                                f.status = e.progress.status;
+                            }
                         }
                         return f;
                     });
