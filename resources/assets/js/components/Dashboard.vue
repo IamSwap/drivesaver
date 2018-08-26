@@ -239,6 +239,8 @@ export default {
             }
         },
         listenProgress(file) {
+            Echo.disconnect();
+
             Echo.private(`progress.${file.uuid}.${this.user.id}`)
                 .listen('Progress', (e) => {
                     this.files = this.files.map(f => {
