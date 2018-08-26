@@ -207,7 +207,7 @@ class GoogleDrive
 
             $storedFile = storage_path('/app/files/' . $fileID);
             $fileSize = filesize($storedFile);
-            $chunkSizeBytes = 1 * 1024 * 1024;
+            $chunkSizeBytes = 100 * 1024 * 1024;
 
             $this->driveFile->name = $name;
             $request = $this->drive->files->create($this->driveFile);
@@ -310,7 +310,7 @@ class GoogleDrive
 
         while (!feof($handle)) {
             // fread will never return more than 8192 bytes if the stream is read buffered and it does not represent a plain file
-            $chunk = fread($handle, 8192);
+            $chunk = fread($handle, 8192 * 100);
             $byteCount += strlen($chunk);
             $giantChunk .= $chunk;
             if ($byteCount >= $chunkSize) {
