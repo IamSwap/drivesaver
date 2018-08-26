@@ -15,9 +15,10 @@
 
     <!-- Scripts -->
     <script>
-        window.CamelThemes = <?php echo json_encode([
+        window.DriveSaver = <?php echo json_encode([
             'user' => auth()->user(),
             'csrfToken' => csrf_token(),
+            'appEnv' => config('app.env')
         ]);?>;
     </script>
 
