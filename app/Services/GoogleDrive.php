@@ -234,8 +234,8 @@ class GoogleDrive
                 $this->uploadRate = $this->media->getProgress() / (microtime(true) - $startTime);
                 $this->uploadedBytes = $this->media->getProgress();
 
-                // $chunk = fread($handle, $chunkSizeBytes);
-                $chunk = $this->readChunk($handle, $chunkSizeBytes);
+                $chunk = fread($handle, $chunkSizeBytes);
+                //$chunk = $this->readChunk($handle, $chunkSizeBytes);
                 $status = $this->media->nextChunk($chunk);
 
                 if ($this->uploadProgress != $progress) {
@@ -310,7 +310,7 @@ class GoogleDrive
 
         while (!feof($handle)) {
             // fread will never return more than 8192 bytes if the stream is read buffered and it does not represent a plain file
-            $chunk = fread($handle, 8192 * 100);
+            $chunk = fread($handle, 8192);
             $byteCount += strlen($chunk);
             $giantChunk .= $chunk;
             if ($byteCount >= $chunkSize) {
