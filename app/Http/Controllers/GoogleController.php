@@ -34,23 +34,7 @@ class GoogleController extends Controller
 
         Auth::login($this->findOrCreate($user));
 
-        return redirect('/home');
-    }
-
-    /**
-     * Deauthorize from Google.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function deauthorize()
-    {
-        $user = Socialite::driver('google')->deauthorize();
-
-        auth()->user()->update([
-            'token' => ''
-        ]);
-
-        redierct('/home');
+        return redirect('/dashboard');
     }
 
     /**

@@ -1,14 +1,35 @@
+// import tablr ui
+@import "./dashboard.css";
 
-// Fonts
-@import url('https://fonts.googleapis.com/css?family=Nunito');
 
-// Variables
-@import 'variables';
+.avatar-ob {
+    width: 15rem;
+    height: 15rem;
+}
 
-// Bootstrap
-@import '~bootstrap/scss/bootstrap';
-
-.navbar-laravel {
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .loader {
+        width: 4rem;
+        height: 4rem;
+        &:after,
+        &:before {
+            width: 4rem;
+            height: 4rem;
+        }
+    }
+}
+.invalid-feedback {
+    display: block;
 }

@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\File;
 use GuzzleHttp\Client;
 use App\Events\Progress;
 use Illuminate\Support\Facades\Storage;
 
 class GoogleDrive
 {
-
     /**
      * Google Client
      *
@@ -86,12 +86,17 @@ class GoogleDrive
      */
     protected $uploadedBytes = 0;
 
+    /**
+     * Download start time
+     *
+     * @var void
+     */
     protected $startTime;
 
     /**
      * Prepare google client
      */
-    public function __construct()
+    public function __construct(File $file)
     {
         $this->client = new \Google_Client();
 
@@ -104,16 +109,16 @@ class GoogleDrive
         $this->client->setDefer(true);
 
         $this->client->setAccessToken([
-            'access_token' => auth()->user()->token,
-            'expires_in' => auth()->user()->token_expires_in,
-            'created' => auth()->user()->token_created,
-            'refresh_token' => auth()->user()->refresh_token,
+            'access_token' => $file->user->token,
+            'expires_in' => $file->user->token_expires_in,
+            'created' => $file->user->token_created,
+            'refresh_token' => $file->user->refresh_token,
         ]);
 
         if ($this->client->isAccessTokenExpired()) {
-            $r = $this->client->refreshToken(auth()->user()->refresh_token);
+            $r = $this->client->refreshToken($file->user->refresh_token);
 
-            auth()->user()->update([
+            $file->user->update([
                 'token' => $r['access_token'],
                 'refresh_token' => $r['refresh_token'],
                 'token_expires_in' => $r['expires_in'],
@@ -121,10 +126,10 @@ class GoogleDrive
             ]);
 
             $this->client->setAccessToken([
-                'access_token' => auth()->user()->token,
-                'expires_in' => auth()->user()->token_expires_in,
-                'created' => auth()->user()->token_created,
-                'refresh_token' => auth()->user()->refresh_token,
+                'access_token' => $file->user->token,
+                'expires_in' => $file->user->token_expires_in,
+                'created' => $file->user->token_created,
+                'refresh_token' => $file->user->refresh_token,
             ]);
         }
 
@@ -133,6 +138,8 @@ class GoogleDrive
 
         $this->httpClient = new Client();
         $this->startTime = microtime(true);
+
+        $this->file = $file;
     }
 
     /**
@@ -142,18 +149,29 @@ class GoogleDrive
      * @param string $url
      * @return void
      */
-    public function upload($name, $url)
+    public function upload()
     {
-        $fileID = str_random(64);
+        $file = $this->file;
+        $name = $file->name;
+        $url = $file->url;
+
+        $fileID = $file->uuid;
 
         $res = $this->httpClient->request('GET', $url, [
-            'progress' => function ($downloadTotal, $downloadedBytes, $uploadTotal, $uploadedBytes) use ($name, $url, $fileID) {
+            'progress' => function ($downloadTotal, $downloadedBytes, $uploadTotal, $uploadedBytes) use ($name, $url, $file, $fileID) {
                 $progress = 0;
 
                 if ($downloadTotal) {
                     $progress = round($downloadedBytes * 100 / $downloadTotal);
                     $downloadRate = $downloadedBytes / (microtime(true) - $this->startTime);
                     $this->downloadedBytes = $downloadedBytes;
+                }
+
+                if ($file->status == 'canceled' || $file->status == 'failed') {
+                    if (Storage::disk('local')->exists('/files/' . $fileID)) {
+                        Storage::disk('local')->delete('/files/' . $fileID);
+                    }
+                    die();
                 }
 
                 if ($downloadedBytes <= $downloadTotal) {
@@ -169,7 +187,8 @@ class GoogleDrive
                             'uploaded' => 0,
                             'upload_progress' => 0,
                             'upload_rate' => $this->uploadRate,
-                            'user_id' => auth()->user()->id
+                            'user_id' => $file->user->id,
+                            'status' => $file->status
                         ];
 
                         broadcast(new Progress($data));
@@ -182,8 +201,12 @@ class GoogleDrive
         ]);
 
         if ($res->getStatusCode() == 200) {
-            $file = storage_path('/app/files/' . $fileID);
-            $fileSize = filesize($file);
+            $file->update([
+                'status' => 'uploading'
+            ]);
+
+            $storedFile = storage_path('/app/files/' . $fileID);
+            $fileSize = filesize($storedFile);
             $chunkSizeBytes = 1 * 1024 * 1024;
 
             $this->driveFile->name = $name;
@@ -201,7 +224,7 @@ class GoogleDrive
             $this->media->setFileSize($fileSize);
 
             $status = false;
-            $handle = fopen($file, "rb");
+            $handle = fopen($storedFile, "rb");
 
             $startTime = microtime(true);
 
@@ -226,7 +249,8 @@ class GoogleDrive
                         'uploaded' => $this->media->getProgress(),
                         'upload_progress' => $progress,
                         'upload_rate' => $this->uploadRate,
-                        'user_id' => auth()->user()->id
+                        'user_id' => $file->user->id,
+                        'status' => $file->status
                     ]));
 
                     $this->uploadProgress != $progress;
@@ -235,7 +259,11 @@ class GoogleDrive
                 if ($status) {
                     $progress = 100;
 
-                    sleep(5);
+                    sleep(5); // make sure we tell user file 100% downloaded
+
+                    $file->update([
+                        'status' => 'finished'
+                    ]);
 
                     broadcast(new Progress([
                         'file_name' => $name,
@@ -248,12 +276,22 @@ class GoogleDrive
                         'uploaded' => $fileSize,
                         'upload_progress' => 100,
                         'upload_rate' => 0,
-                        'user_id' => auth()->user()->id
+                        'user_id' => $file->user->id,
+                        'status' => $file->status
                     ]));
 
                     $this->uploadProgress = $progress;
 
-                    Storage::disk('local')->delete('/files/' . $fileID);
+                    if (Storage::disk('local')->exists('/files/' . $fileID)) {
+                        Storage::disk('local')->delete('/files/' . $fileID);
+                    }
+
+                    if ($file->status == 'canceled' || $file->status == 'failed') {
+                        if (Storage::disk('local')->exists('/files/' . $fileID)) {
+                            Storage::disk('local')->delete('/files/' . $fileID);
+                        }
+                        break;
+                    }
                 }
             }
 

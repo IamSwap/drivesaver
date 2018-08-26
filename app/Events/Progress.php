@@ -14,17 +14,16 @@ class Progress implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $data;
-    public $downloadedBytes;
+    public $progress;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct($progress)
     {
-        $this->data = $data;
+        $this->progress = $progress;
     }
 
     /**
@@ -34,6 +33,6 @@ class Progress implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('progress.' . $this->data['user_id']);
+        return new PrivateChannel('progress.' . $this->progress['file_id'] . '.' . $this->progress['user_id']);
     }
 }

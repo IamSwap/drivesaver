@@ -11,6 +11,6 @@
 |
 */
 
-Broadcast::channel('progress.{id}', function ($user, $id) {
+Broadcast::channel('progress.{uuid}.{id}', function ($user, $uuid, $id) {
     return (int) $user->id === (int) $id;
 });
