@@ -207,7 +207,7 @@ class GoogleDrive
 
             $storedFile = storage_path('/app/files/' . $fileID);
             $fileSize = filesize($storedFile);
-            $chunkSizeBytes = 256 * 1024 * 400;
+            $chunkSizeBytes = 100 * 1024 * 1024;
 
             $this->driveFile->name = $name;
             $request = $this->drive->files->create($this->driveFile);
