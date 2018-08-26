@@ -143,6 +143,7 @@ export default {
                 .then(response => {
                     this.files = response.data;
                     this.loading = false;
+                    Echo.disconnect();
                     this.files.map((file) => {
                         if (file.status === 'downloading' || file.status === 'uploading') {
                             this.listenProgress(file);
@@ -239,8 +240,6 @@ export default {
             }
         },
         listenProgress(file) {
-            Echo.disconnect();
-
             Echo.private(`progress.${file.uuid}.${this.user.id}`)
                 .listen('Progress', (e) => {
                     this.files = this.files.map(f => {
