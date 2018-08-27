@@ -234,6 +234,8 @@ class GoogleDrive
                 $this->uploadRate = $this->media->getProgress() / (microtime(true) - $startTime);
                 $this->uploadedBytes = $this->media->getProgress();
 
+                // TODO: Dispatch Job per upload chunk
+
                 $chunk = fread($handle, $chunkSizeBytes);
                 //$chunk = $this->readChunk($handle, $chunkSizeBytes);
                 $status = $this->media->nextChunk($chunk);
