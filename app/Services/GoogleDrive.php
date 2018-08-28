@@ -235,6 +235,7 @@ class GoogleDrive
                 $this->uploadedBytes = $this->media->getProgress();
 
                 // TODO: Dispatch Job per upload chunk
+                // instead of sending chunk data through job. send handle & chunkbyte size.
 
                 $chunk = fread($handle, $chunkSizeBytes);
                 //$chunk = $this->readChunk($handle, $chunkSizeBytes);
