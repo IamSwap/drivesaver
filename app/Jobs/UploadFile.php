@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\File;
 use App\Events\Progress;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
