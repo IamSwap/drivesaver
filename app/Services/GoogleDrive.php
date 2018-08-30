@@ -202,7 +202,7 @@ class GoogleDrive
         ]);
 
         if ($res->getStatusCode() == 200) {
-            UploadChunk::dispatch(
+            UploadFile::dispatch(
                 $file,
                 $this->client,
                 $this->media,
