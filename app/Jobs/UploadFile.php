@@ -53,7 +53,7 @@ class UploadFile implements ShouldQueue
         $fileSize = filesize($storedFile);
         $chunkSizeBytes = 100 * 1024 * 1024;
 
-        $this->driveFile->name = $name;
+        $this->driveFile->name = $file->name;
         $request = $this->drive->files->create($this->driveFile);
 
         $this->media = new \Google_Http_MediaFileUpload(
