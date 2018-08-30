@@ -49,6 +49,7 @@ class UploadFile implements ShouldQueue
         $fileID = $this->file->uuid;
 
         $name = $file->name;
+        $url = $file->url;
 
         $file->update([
             'status' => 'uploading'
