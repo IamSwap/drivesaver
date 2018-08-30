@@ -78,7 +78,7 @@ class UploadFile implements ShouldQueue
 
         $startTime = microtime(true);
 
-        while (!$status && !feof($handle)) {
+        while (! $status && ! feof($handle)) {
             $progress = round($this->media->getProgress() * 100 / $fileSize);
 
             $this->uploadRate = $this->media->getProgress() / (microtime(true) - $startTime);
@@ -111,7 +111,7 @@ class UploadFile implements ShouldQueue
             if ($status) {
                 $progress = 100;
 
-                sleep(5); // make sure we tell user file 100% downloaded
+                sleep(3); // make sure we tell user file 100% downloaded
 
                 $file->update([
                     'status' => 'finished'
@@ -158,7 +158,7 @@ class UploadFile implements ShouldQueue
         $byteCount = 0;
         $giantChunk = "";
 
-        while (!feof($handle)) {
+        while (! feof($handle)) {
             // fread will never return more than 8192 bytes if the stream is read buffered and it does not represent a plain file
             $chunk = fread($handle, 8192);
             $byteCount += strlen($chunk);
