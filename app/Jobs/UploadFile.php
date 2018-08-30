@@ -57,7 +57,7 @@ class UploadFile implements ShouldQueue
 
         $storedFile = storage_path('/app/files/' . $fileID);
         $fileSize = filesize($storedFile);
-        $chunkSizeBytes = 200 * 1024 * 1024;
+        $chunkSizeBytes = 100 * 1024 * 1024;
 
         $this->driveFile->name = $file->name;
         $request = $this->drive->files->create($this->driveFile);
