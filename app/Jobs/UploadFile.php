@@ -20,6 +20,9 @@ class UploadFile implements ShouldQueue
     protected $media;
     protected $drive;
     protected $driveFile;
+    protected $uploadProgress = 0;
+    protected $uploadRate = 0;
+    protected $uploadedBytes = 0;
 
     /**
      * Create a new job instance.
